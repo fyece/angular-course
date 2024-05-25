@@ -24,3 +24,10 @@
     height: 100%;
     overflow: auto;
 }
+
+.pagination-btn {
+    opacity: 0.75;
+}
+.active {
+    opacity: 1;
+}

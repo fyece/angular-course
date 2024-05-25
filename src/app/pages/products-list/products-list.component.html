@@ -1,6 +1,5 @@
 <ng-container *ngIf="products$ | async as products; else loader">
-    <!-- Раскомментрировать для ДЗ -->
-    <!-- <ng-container
+    <ng-container
         *appPagination="
             let productsGroup of products;
             chankSize: 4;
@@ -10,19 +9,26 @@
             let back = back;
             let selectIndex = selectIndex
         "
-    > -->
-
-    <app-card
-        *ngFor="let product of products; trackBy: trackBy; let index = index"
-        class="card"
-        [product]="product"
-        (buy)="onProductBuy($event)"
-    ></app-card>
-    <div class="pagination">
-        <!-- Add pagination control -->
-    </div>
-
-    <!-- </ng-container> -->
+    >
+        <app-card
+            *ngFor="let product of productsGroup; trackBy: trackBy; let index = index"
+            class="card"
+            [product]="product"
+            (buy)="onProductBuy($event)"
+        ></app-card>
+        <div *ngIf="products" class="pagination">
+            <button class="pagination-btn" (click)="back()">prev</button>
+            <button
+                *ngFor="let index of pageIndexes"
+                class="pagination-btn"
+                [class.active]="index === activeIndex"
+                (click)="selectIndex(index)"
+            >
+                {{ index + 1 }}
+            </button>
+            <button class="pagination-btn" (click)="next()">next</button>
+        </div>
+    </ng-container>
 </ng-container>
 
 <ng-template #loader>
