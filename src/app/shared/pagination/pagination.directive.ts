@@ -19,6 +19,7 @@ export class PaginationDirective<T> implements OnInit, OnChanges {
 
     private readonly templateRef = inject<TemplateRef<PaginationContext<T>>>(TemplateRef);
     private readonly viewContainerRef = inject(ViewContainerRef);
+    private pagesCount = 0;
 
     @Input() appPaginationOf: T[] | null | undefined;
     @Input() appPaginationChankSize = 24;
@@ -38,19 +39,21 @@ export class PaginationDirective<T> implements OnInit, OnChanges {
         return true;
     }
 
-    ngOnChanges({appPaginationOf}: SimpleChanges): void {
-        if (appPaginationOf) {
+    ngOnChanges({appPaginationOf, appPaginationChankSize}: SimpleChanges): void {
+        if (appPaginationOf || appPaginationChankSize) {
             this.updateView();
         }
     }
 
     ngOnInit(): void {
-        this.listencurrentIndex();
+        this.listenCurrentIndex();
     }
 
     private updateView() {
         if (this.isNotEmpty()) {
             this.currentIndex$.next(0);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            this.pagesCount = Math.ceil(this.appPaginationOf!.length / this.appPaginationChankSize);
 
             return;
         }
@@ -58,7 +61,7 @@ export class PaginationDirective<T> implements OnInit, OnChanges {
         this.viewContainerRef.clear();
     }
 
-    private listencurrentIndex() {
+    private listenCurrentIndex() {
         this.currentIndex$
             .pipe(
                 filter(() => this.isNotEmpty()),
@@ -109,10 +112,8 @@ export class PaginationDirective<T> implements OnInit, OnChanges {
     private getPageIndexes(): number[] {
         const pageIndexes: number[] = [];
 
-        if (this.appPaginationOf?.length) {
-            const pagesCount = Math.ceil(this.appPaginationOf.length / this.appPaginationChankSize);
-
-            for (let i = 0; i < pagesCount; i++) {
+        if (this.pagesCount) {
+            for (let i = 0; i < this.pagesCount; i++) {
                 pageIndexes.push(i);
             }
         }
@@ -123,7 +124,6 @@ export class PaginationDirective<T> implements OnInit, OnChanges {
     private next() {
         const lastIndex = this.getPageIndexes().length ? this.getPageIndexes().length - 1 : 0;
         const nextIndex = this.currentIndex$.value + 1;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const newIndex = nextIndex <= lastIndex ? nextIndex : lastIndex;
 
         this.currentIndex$.next(newIndex);
@@ -138,7 +138,7 @@ export class PaginationDirective<T> implements OnInit, OnChanges {
     }
 
     private goToPage(index: number) {
-        const lastIndex = this.getPageIndexes().length ? this.getPageIndexes().length - 1 : 0;
+        const lastIndex = this.pagesCount ? this.pagesCount - 1 : 0;
         const firstIndex = 0;
 
         if (index >= firstIndex || index <= lastIndex) {
